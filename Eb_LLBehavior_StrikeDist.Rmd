@@ -1,0 +1,186 @@
+---
+title: "Eb_LLBehavior_StrikeDist"
+output: html_document
+---
+
+
+```{r}
+library(lattice)
+library(readxl)
+
+#Loaded Sheet 
+dist = read_excel("Eb_Strike_Dist.xlsx")
+summary(dist) 
+
+livedist <- subset(dist20, dist20$PREY=="live")
+deaddist <- subset(dist20, dist20$PREY=="dead")
+
+controldist <- subset(dist, dist$MODALITY == "C")
+cdlive <- subset(controldist, controldist$PREY == "live")
+cddead <- subset(controldist, controldist$PREY == "dead")
+
+
+lcdist <- subset(dist, dist$MODALITY == "NV")
+lclive <- subset(lcdist, lcdist$PREY == "live")
+lcdead <- subset(lcdist, lcdist$PREY == "dead")
+
+vcdist <- subset(dist, dist$MODALITY == "NL")
+vclive <- subset(vcdist, vcdist$PREY == "live")
+vcdead <- subset(vcdist, vcdist$PREY == "dead")
+
+cdist <- subset(dist, dist$MODALITY == "NLV")
+clive <- subset(cdist, cdist$PREY == "live")
+cdead <- subset(cdist, cdist$PREY == "dead")
+```
+
+
+```{r}
+#Subsetting data 
+dist20 <- subset(dist, dist$YEAR == "2020")
+summary(dist20)
+
+#Testing for Normality 
+shapiro.test(dist20$STRIKE_DIST) ##proceeding with non-parametric test since data is not  normal 
+
+#Did detection distance vary with modality? 
+kruskal.test(STRIKE_DIST~MODALITY, data = dist20)
+
+library(tidyverse)
+library(rstatix)
+
+dunn_test(data = dist20, STRIKE_DIST ~ MODALITY, p.adjust.method = "bonferroni")
+```
+
+```{r}
+##Testing whether detection distance varied on live vs. dead prey within each modality
+##Control 
+wilcox.test(cdlive$STRIKE_DIST,cddead$STRIKE_DIST) #p-value = 0.7415
+
+#Dark trials, LL intact 
+wilcox.test(lclive$STRIKE_DIST,lcdead$STRIKE_DIST) # p-value = 0.8097
+
+#Light trials, LL ablated 
+wilcox.test(vclive$STRIKE_DIST,vcdead$STRIKE_DIST) #p-value = 0.1783
+
+#Dark trials, LL ablated 
+wilcox.test(clive$STRIKE_DIST,cdead$STRIKE_DIST) #p-value = 0.004984
+mean(clive$STRIKE_DIST) #closer 
+mean(cdead$STRIKE_DIST) #further 
+```
+
+
+```{r}
+##Plots for Figure 10 
+
+library(ggplot2)
+library(tidyverse)
+
+livedist_new <- livedist    # Duplicate data
+modality <- factor(livedist_new$MODALITY, c("C", "NL", "NV", "NLV"))
+plot11 <- ggplot(data=livedist, aes(x=modality, y=STRIKE_DIST)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("Detection Distance (mm)") +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot11 
+
+deaddist_new <- deaddist    # Duplicate data
+modality <- factor(deaddist_new$MODALITY, c("C", "NL", "NV", "NLV"))
+plot12 <- ggplot(data=deaddist, aes(x=modality, y=STRIKE_DIST)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("Detection Distance (mm)") +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot12 
+```
+
+
+
+```{r}
+##Testing wether a platform's time in the tank affected strike distance 
+
+##Loading strike distance sheet 
+library(lattice)
+library(readxl)
+
+library(tidyverse)
+library(rstatix)
+
+#Loaded Sheet 
+pstrikedist = read_excel("Eb_PA_StrikeDist.xlsx")
+summary(pstrikedist)
+```
+
+```{r}
+##Subsetting data 
+#Subsetting for 2020 fish only 
+pstrike20 <- subset(pstrikedist, pstrikedist$YEAR == "2020")
+
+#subsetting based on modality 
+cstrike <- subset(pstrike20, pstrike20$MODALITY == "NLV")
+vlcstrike <- subset(pstrike20, pstrike20$MODALITY == "C")
+vcstrike <- subset(pstrike20, pstrike20$MODALITY == "NL")
+lcstrike <- subset(pstrike20, pstrike20$MODALITY == "NV")
+
+#analyzing live & dead prey separately 
+live <- subset(pstrike20, pstrike20$PREY == "live")
+shapiro.test(live$DIST)
+
+clive <- subset(live, live$MODALITY == "NLV")
+vlclive <- subset(live, live$MODALITY == "C")
+vclive <- subset(live, live$MODALITY == "NL")
+lclive <- subset(live, live$MODALITY == "NV")
+
+
+dead <- subset(pstrike20, pstrike20$PREY == "dead")
+shapiro.test(dead$DIST)
+```
+
+```{r}
+library(car)
+library(multcomp)
+
+##Is platform's time in tank a significant predictor of strike distance on live prey? 
+kruskal.test(data = live,DIST~ P_TANKTIME) #p-value = 0.01061
+dunn_test(data = live, DIST ~P_TANKTIME, p.adjust.method = "bonferroni") ##no significant comparisons after bonferroni correction 
+
+a1<- aov(data = live, DIST ~ as.factor(P_TANKTIME) * as.factor(MODALITY))
+summary(a1) #modality and tank time significant 
+ph1 <- glht(a1, linfct = mcp("as.factor(MODALITY)" = "Tukey"))
+summary(ph1) ##All modality comparisons for detection distance significantly different except for dark vs. dark w/ LL ablated 
+
+ph4 <- glht(a1, linfct = mcp("as.factor(P_TANKTIME)" = "Tukey"))
+summary(ph4) #NS after correction 
+
+
+##Is platform's time in tank a significant predictor of stirke distance on dead prey? 
+kruskal.test(data = dead, DIST~P_TANKTIME) ##NS, p-value = 0.2933
+
+a2<- aov(data = dead, DIST ~ as.factor(P_TANKTIME) * as.factor(MODALITY))
+summary(a2) #only modality significant 
+ph2 <- glht(a2, linfct = mcp("as.factor(MODALITY)" = "Tukey"))
+summary(ph2) ##All modality comparisons significant except for light trials vs. light trials w/ LL ablated & dark trials vs. dark trials w/ lateral line ablated 
+
+ph5<- glht(a2, linfct = mcp("as.factor(P_TANKTIME)" = "Tukey"))
+summary(ph5) #NS 
+
+```
+

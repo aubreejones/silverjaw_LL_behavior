@@ -1,0 +1,236 @@
+---
+title: "Eb_LLBehavior_Angles"
+output: html_document
+---
+
+
+```{r}
+library(lattice)
+library(readxl)
+library(tidyverse)
+library(rstatix)
+
+#Loaded Sheet 
+angle = read_excel("Eb_Angles.xlsx")
+summary(angle) 
+```
+
+
+
+```{r}
+##Subsetting data for analysis 
+controlangle<- subset(angle, angle$MODALITY == "C")
+cliveangle <- subset(controlangle, controlangle$PREY == "live") ##n=38
+cdeadangle <- subset(controlangle, controlangle$PREY == "dead") ##n=32
+
+chemangle<- subset(angle, angle$MODALITY=="NLV")
+chemliveang <- subset(chemangle, chemangle$PREY == "live") ##n=20
+chemdeadang <- subset(chemangle, chemangle$PREY == "dead") ##n=23
+
+lcangle<- subset(angle, angle$MODALITY=="NV")
+lcliveangle <- subset(lcangle, lcangle$PREY == "live") ##n=29
+lcdeadangle <- subset(lcangle, lcangle$PREY == "dead") ##n=27
+
+vcangle<- subset(angle, angle$MODALITY=="NL")
+vcliveangle <- subset(vcangle, vcangle$PREY == "live") ##n=17
+vcdeadangle <- subset(vcangle, vcangle$PREY == "dead") ##n=13
+
+
+liveangle <- subset(angle, angle$PREY == "live") ##n=104
+deadangle <- subset(angle, angle$PREY == "dead") ##n=95
+```
+
+```{r}
+##Normality Tests
+
+shapiro.test(liveangle$DEGREES) ##p-value = 0.1315 
+
+shapiro.test(deadangle$DEGREES) ##p-value = 0.1842
+
+```
+
+
+
+```{r}
+library(circular)
+library(CircStats)
+
+#Rayleigh tests 
+
+rayleigh.test(cliveangle$RAD) ##1e-04 
+rayleigh.test(cdeadangle$RAD) # 0.002
+clive.mean <- mean(cliveangle$DEGREES, na.rm = TRUE) #167.801
+cdead.mean <- mean(cdeadangle$DEGREES, na.rm = TRUE) #179.4995
+
+
+rayleigh.test(chemliveang$RAD) ## 0
+rayleigh.test(chemdeadang$RAD) ##0
+chemlive.mean <- mean(chemliveang$DEGREES, na.rm = TRUE) #192.441
+chemdead.mean <- mean(chemdeadang$DEGREES, na.rm = TRUE) ##165.086
+
+
+rayleigh.test(vcliveangle$RAD)##  0.003   
+rayleigh.test(vcdeadangle$RAD) ##0.0082 
+vclive.mean <- mean(vcliveangle$DEGREES, na.rm = TRUE) #202.127
+vcdead.mean <- mean(vcdeadangle$DEGREES, na.rm = TRUE) ##172.191
+
+
+rayleigh.test(lcliveangle$RAD) ##P=0
+rayleigh.test(lcdeadangle$RAD) #0
+lclive.mean <- mean(lcliveangle$DEGREES, na.rm = TRUE) #179.2205
+lcdead.mean <- mean(lcdeadangle$DEGREES, na.rm = TRUE) ##163.497
+```
+
+
+```{r}
+##comparing means of live & dead prey angle distributons 
+watson.wheeler.test(list(cliveangle$RAD, chemliveang$RAD, vcliveangle$RAD, lcliveangle$RAD)) ##p-value = 0.03611
+watson.two.test(lcliveangle$RAD, vcliveangle$RAD) ##0.01 < P-value < 0.05 
+watson.two.test(lcliveangle$RAD, cliveangle$RAD) #P-value > 0.10 
+watson.two.test(lcliveangle$RAD, chemliveang$RAD) #P-value > 0.10 
+
+watson.two.test(vcliveangle$RAD, cliveangle$RAD) #0.001 < P-value < 0.01 
+watson.two.test(vcliveangle$RAD, chemliveang$RAD) #P-value > 0.05 
+
+watson.two.test(cliveangle$RAD, chemliveang$RAD) #P-value > 0.10 
+
+watson.wheeler.test(list(cdeadangle$RAD, chemdeadang$RAD, vcdeadangle$RAD, lcdeadangle$RAD)) ##p-value = 0.02462
+watson.two.test(lcdeadangle$RAD, vcdeadangle$RAD) #P-value > 0.10 
+watson.two.test(lcdeadangle$RAD, cdeadangle$RAD) #P-value > 0.10 
+watson.two.test(lcdeadangle$RAD, chemdeadang$RAD) #0.001 < P-value < 0.01 
+
+watson.two.test(vcdeadangle$RAD, cdeadangle$RAD) #P-value > 0.10  
+watson.two.test(vcdeadangle$RAD, chemdeadang$RAD) #P-value > 0.10
+
+watson.two.test(cdeadangle$RAD, chemdeadang$RAD) #0.001 < P-value < 0.01 
+
+#Was there an overall difference in angle of detection for live & dead prey 
+watson.two.test(liveangle$RAD, deadangle$RAD) ##P-value > 0.10
+
+#Within each treatment 
+watson.two.test(lcliveangle$RAD, lcdeadangle$RAD) #P-value > 0.10 
+watson.two.test(vcliveangle$RAD, vcdeadangle$RAD) ##P-value > 0.10 
+watson.two.test(cliveangle$RAD, cdeadangle$RAD) #P-value > 0.10 
+watson.two.test(chemliveang$RAD, chemdeadang$RAD)  #P-value > 0.10 
+```
+
+
+
+```{r}
+#Andersondarling k samples test - pooled data for live & dead prey compared among treatments 
+a <- lcangle$RAD
+b <- vcangle$RAD
+c <- chemangle$RAD
+d <- controlangle$RAD
+
+library(kSamples)
+ad.test(list(a, b, c, d), method = "exact", dist = F, Nsim = 1000) ##Pvalues = 0.103 for v1 and v2 
+
+#Andersondarling k samples test - live data among treatments 
+a1 <- lcliveangle$RAD
+b1 <- vcliveangle$RAD
+c1 <- chemliveang$RAD
+d1 <- cliveangle$RAD
+
+library(kSamples)
+ad.test(list(a1, b1, c1, d1), method = "exact", dist = F, Nsim = 1000) ##p-values v1: 0.074, 0.075
+
+#Andersondarling k samples test - dead data among treatments 
+a2 <- lcdeadangle$RAD
+b2 <- vcdeadangle$RAD
+c2 <- chemdeadang$RAD
+d2 <- cdeadangle$RAD
+
+library(kSamples)
+ad.test(list(a2, b2, c2, d2), method = "exact", dist = F, Nsim = 1000) ##p-values v1: 0.199, 0.199
+```
+
+
+
+```{r}
+#Kolmogorov-Smirnov test - live vs. dead prey within each treatment / modality 
+
+ks.test(lcliveangle$DEGREES, lcdeadangle$DEGREES) # p-value = 0.7315
+
+ks.test(vcliveangle$DEGREES, vcdeadangle$DEGREES) ##p-value = 0.1144
+
+ks.test(cliveangle$DEGREES, cdeadangle$DEGREES) ##  p-value = 0.2796
+
+ks.test(chemliveang$DEGREES, chemdeadang$DEGREES) #p-value = 0.05001
+```
+
+
+
+```{r}
+library(ggplot2)
+##Not in final paper, subsetted live and dead prey for figure 9
+a <- ggplot(angle, aes(x = DEGREES, fill = as.factor(MODALITY))) +
+  geom_histogram(binwidth = 15, boundary = -10, colour = "black", size = 0.25) +
+  scale_fill_manual(values=c("gray", "gray", "gray57", "gray57"))+
+  guides(fill = guide_legend(reverse = TRUE)) +
+  coord_polar() +
+  xlab("Degrees") +
+  ylab("Number of Detections") +
+  theme_bw() +
+  scale_x_continuous(limits = c(0,360),
+                     breaks = seq(0, 360, by = 45),
+                     minor_breaks = seq(0, 360, by = 15))+
+  scale_y_continuous(breaks = seq(0, 360, by = 3))+
+   theme(axis.text.x = element_text(color="black", size = 8, angle = 0, vjust = 2, hjust = 5),
+        axis.text.y = element_text(color="black", size = 8),
+        panel.grid.major=element_line(colour="gray"),
+        panel.grid.minor=element_line(colour="gray"))
+        #legend.position="none")
+
+a + facet_wrap(~ MODALITY)
+```
+
+
+```{r}
+#Angle of approach to live prey in Figure 9 
+b <- ggplot(liveangle, aes(x = DEGREES, fill = as.factor(MODALITY))) +
+  geom_histogram(binwidth = 15, boundary = -10, colour = "black", size = 0.25) +
+  scale_fill_manual(values=c("gray", "gray", "gray57", "gray57"))+
+  guides(fill = guide_legend(reverse = TRUE)) +
+  coord_polar() +
+  xlab("Degrees") +
+  ylab("Number of Detections") +
+  theme_bw() +
+  scale_x_continuous(limits = c(0,360),
+                     breaks = seq(0, 360, by = 45),
+                     minor_breaks = seq(0, 360, by = 15))+
+  scale_y_continuous(breaks = seq(0, 360, by = 3))+
+   theme(axis.text.x = element_text(color="white", size = 8, angle = 0, vjust = 2, hjust = 5),
+        axis.text.y = element_text(color="black", size = 8),
+        panel.grid.major=element_line(colour="gray"),
+        panel.grid.minor=element_line(colour="gray"))
+        #legend.position="none")
+
+b + facet_wrap(~ MODALITY)
+```
+
+
+```{r}
+#Angle of approach to dead prey in figure 9
+c <- ggplot(deadangle, aes(x = DEGREES, fill = as.factor(MODALITY))) +
+  geom_histogram(binwidth = 15, boundary = -10, colour = "black", size = 0.25) +
+  scale_fill_manual(values=c("gray", "gray", "gray57", "gray57"))+
+  guides(fill = guide_legend(reverse = TRUE)) +
+  coord_polar() +
+  xlab("Degrees") +
+  ylab("Number of Detections") +
+  theme_bw() +
+  scale_x_continuous(limits = c(0,360),
+                     breaks = seq(0, 360, by = 45),
+                     minor_breaks = seq(0, 360, by = 15))+
+  scale_y_continuous(breaks = seq(0, 360, by = 3))+
+   theme(axis.text.x = element_text(color="white", size = 8, angle = 0, vjust = 2, hjust = 5),
+        axis.text.y = element_text(color="black", size = 8),
+        panel.grid.major=element_line(colour="gray"),
+        panel.grid.minor=element_line(colour="gray"))
+        #legend.position="none")
+
+c + facet_wrap(~ MODALITY)
+```
+
+

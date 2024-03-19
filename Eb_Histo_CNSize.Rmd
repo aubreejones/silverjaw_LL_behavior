@@ -1,0 +1,46 @@
+---
+title: "Eb_Histo_CNSize"
+output: html_document
+---
+
+```{r}
+library(lattice)
+library(readxl)
+
+#Loaded Sheet 
+histo = read_excel("Eb_Histo_22.xlsx")
+summary(histo) 
+```
+
+```{r}
+##Analyzing adults only 
+adulthisto <- subset(histo, histo$SIZE>20)
+
+#Subsetting based on canal (MD = wide, SO = narrow)
+histoMD = subset(adulthisto, adulthisto$CANAL == "MD")
+histoSO = subset(adulthisto, adulthisto$CANAL == "SO")
+
+#testing for normality
+shapiro.test(histoMD$CN_HEIGHT) 
+shapiro.test(histoSO$CN_HEIGHT)
+
+#Welch's T Test to see if CN size is affected by narrow vs widened canals 
+t.test(histoMD$CN_HEIGHT, histoSO$CN_HEIGHT)
+```
+
+```{r}
+#Only examining juvenile specimen
+juvhisto <- subset(histo, histo$SIZE=="19.5")
+
+#Subsetting based on canal (MD = wide, SO = narrow)
+histoMD1 = subset(juvhisto, juvhisto$CANAL == "MD")
+histoSO1 = subset(juvhisto, juvhisto$CANAL == "SO")
+
+#testing for normality 
+shapiro.test(histoMD1$CN_HEIGHT) 
+shapiro.test(histoSO1$CN_HEIGHT)
+
+#Welch's T Test to see if CN size is affected by narrow vs widened canals 
+t.test(histoMD1$CN_HEIGHT, histoSO1$CN_HEIGHT)
+```
+

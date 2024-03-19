@@ -1,0 +1,175 @@
+---
+title: "Eb_LLBehavior_PreyConsumption"
+output: html_document
+---
+
+
+```{r}
+library(lattice)
+library(readxl)
+
+#Loaded Sheet 
+prey = read_excel("Eb_Prey_Consumption.xlsx")
+summary(prey) 
+
+###Code for modality: C = light trial, LL intact; NV = dark trial, LL intact, NL = light trial, LL ablated, NVL = dark trial, LL ablated
+```
+
+```{r}
+#Subsetting data 
+fish20 <- subset(prey, prey$YEAR == "2020")
+summary(fish20)
+
+controlprey <- subset(fish20, fish20$MODALITY == "C")
+lcprey <- subset(fish20, fish20$MODALITY == "NV")
+chemprey <- subset(fish20, fish20$MODALITY == "NLV")
+vcprey <- subset(fish20, fish20$MODALITY == "NL")
+```
+
+```{r}
+##Testing for normality 
+shapiro.test(fish20$TOTAL_PREY)
+shapiro.test(fish20$TOTAL_LIVE)
+shapiro.test(fish20$TOTAL_DEAD)
+
+#Did number of prey consumed vary with modality? 
+kruskal.test(data=fish20, TOTAL_PREY~MODALITY)
+
+kruskal.test(data=fish20, TOTAL_LIVE~MODALITY)
+dunn_test(data = fish20, TOTAL_LIVE ~ MODALITY, p.adjust.method = "bonferroni")
+
+kruskal.test(data=fish20, TOTAL_DEAD~MODALITY)
+dunn_test(data = fish20, TOTAL_DEAD ~ MODALITY, p.adjust.method = "bonferroni")
+
+#Was the total number of live & dead prey consumed different across all treatments? 
+wilcox.test(fish20$TOTAL_LIVE, fish20$TOTAL_DEAD, paired = T) #Yes 
+mean(fish20$TOTAL_DEAD)
+mean(fish20$TOTAL_LIVE)
+
+
+#Is # live prey vs. dead prey different for each modality
+
+wilcox.test(controlprey$TOTAL_LIVE, controlprey$TOTAL_DEAD, paired = T) #.01298
+
+wilcox.test(lcprey$TOTAL_LIVE, lcprey$TOTAL_DEAD, paired = T) #p-value = 0.04472
+
+wilcox.test(chemprey$TOTAL_LIVE, chemprey$TOTAL_DEAD, paired = T) ##p-value = 0.3447 NOT SIG INTERESTING
+
+wilcox.test(vcprey$TOTAL_LIVE, vcprey$TOTAL_DEAD, paired = T) # p-value = 0.02627
+```
+
+
+
+```{r}
+##Plots for Figure 10 
+```{r}
+library(ggplot2)
+library(tidyverse)
+prey_new <- fish20    # Duplicate data
+modality <- factor(prey_new$MODALITY, c("C", "NL", "NV", "NLV"))
+
+plot13 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_DEAD)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("# Dead Prey Consumed") +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot13 
+
+plot14 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_LIVE)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("# Live Prey Consumed") +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot14 
+```
+
+
+```{r}
+#Testing whether a platform's time in the tank affected whether prey was consumed  
+prey = read_excel("Eb_PA_Consumption.xlsx")
+summary(prey)
+
+##subsetting 2020 fish 
+prey20 <- subset(prey, prey$YEAR == "2020")
+
+##Is all platform's time in tank a significant predictor of total live prey consumed? 
+shapiro.test(prey20$TOTAL_LIVE)
+kruskal.test(TOTAL_LIVE ~ ALL_PLATFORMS_TANKTIME, data = prey20) ##p-value = 0.3044
+
+a11<- aov(data = prey20, TOTAL_LIVE ~ as.factor(ALL_PLATFORMS_TANKTIME) * as.factor(MODALITY))
+summary(a11) #NS
+
+
+##Is all platform's time in tank a significant predictor of total dead prey consumed? 
+shapiro.test(prey20$TOTAL_DEAD)
+kruskal.test(TOTAL_DEAD ~ ALL_PLATFORMS_TANKTIME, data = prey20) ##p-value = 0.8085
+
+a12<- aov(data = prey20, TOTAL_DEAD ~ as.factor(ALL_PLATFORMS_TANKTIME) * as.factor(MODALITY))
+summary(a12) #NS
+
+
+
+##Individual platform analyis for does platform time in tank affeect whether live or dead prey was consumed? 
+
+#Live prey 
+kruskal.test(P1_LIVE ~ P1_TANKTIME, data = prey20) #NS, p-value = 0.2363
+
+a3<- aov(data = prey20, P1_LIVE ~ P1_TANKTIME * MODALITY)
+summary(a3) #NS
+
+kruskal.test(P2_LIVE ~ P2_TANKTIME, data = prey20) #NS, p-value = 0.1017
+
+a4<- aov(data = prey20, P2_LIVE ~ P2_TANKTIME * MODALITY)
+summary(a4) #NS
+
+
+kruskal.test(P3_LIVE ~ P3_TANKTIME, data = prey20) ##NS, p-value = 0.2282
+a5<- aov(data = prey20, P3_LIVE ~ P3_TANKTIME * MODALITY)
+summary(a5) #NS
+
+kruskal.test(P4_LIVE ~ P4_TANKTIME, data = prey20) #NS, p-value = 0.2399
+a6<- aov(data = prey20, P4_LIVE ~ P4_TANKTIME * MODALITY)
+summary(a6) #NS 
+
+#Dead prey 
+kruskal.test(P1_DEAD ~ P1_TANKTIME, data = prey20) #NS, p-value = 0.2739
+a7<- aov(data = prey20, P1_DEAD ~ as.factor(P1_TANKTIME) * as.factor(MODALITY))
+summary(a7) #Modality & interaction significant 
+ph3 <- glht(a7, linfct = mcp("as.factor(MODALITY)" = "Tukey"))
+summary(ph3) #dead prey consumed varied significantly in dark trials vs. dark trials w/ LL ablated, light trials w/ LL ablated vs. dark trials w/ LL ablated, and dark trials w/ LL ablated vs. light trials w/ LL 
+
+ph6 <- glht(a7, linfct = mcp("as.factor(P1_TANKTIME)" = "Tukey"))
+summary(ph6) #NS 
+
+kruskal.test(P2_DEAD ~ P2_TANKTIME, data = prey20) #NS, p-value = 0.7295
+a8<- aov(data = prey20, P2_DEAD ~ P2_TANKTIME * MODALITY) 
+summary(a8) #NS
+
+
+kruskal.test(P3_DEAD ~ P3_TANKTIME, data = prey20) #NS, p-value = 0.6296
+a9<- aov(data = prey20, P3_DEAD ~ P3_TANKTIME * MODALITY)
+summary(a8) #NS
+
+kruskal.test(P4_DEAD ~ P4_TANKTIME, data = prey20) #NS, p-value = 0.1939
+a10<- aov(data = prey20, P4_DEAD ~ P4_TANKTIME * MODALITY)
+summary(a10) #NS
+```
+

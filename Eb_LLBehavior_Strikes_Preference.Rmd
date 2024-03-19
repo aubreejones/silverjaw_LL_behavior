@@ -1,0 +1,212 @@
+---
+title: "Eb_LLBehavior_Strikes"
+output: html_document
+---
+
+
+```{r}
+#Analysis for strike order and number of un/sucessful strikes 
+
+library(lattice)
+library(readxl)
+
+#Loaded Sheet
+pstrikes = read_excel("Eb_Strikes_Platforms.xlsx")
+summary(pstrikes) 
+```
+
+```{r}
+##Subsetting the data 
+pstrikes20 <- subset(pstrikes, pstrikes$YEAR == "2020")
+summary(pstrikes20)
+
+controlstrikes<- subset(pstrikes20, pstrikes20$MODALITY == "C")
+chemstrikes<- subset(pstrikes20, pstrikes20$MODALITY=="NLV")
+lcstrikes<- subset(pstrikes20, pstrikes20$MODALITY=="NV")
+vcstrikes<- subset(pstrikes20, pstrikes20$MODALITY=="NL")
+```
+
+```{r}
+#Normality Testing 
+shapiro.test(pstrikes20$SSTRIKES) #not normal, proceeding with nonparametric alternatives
+shapiro.test(pstrikes20$FSTRIKES)#not normal, proceeding with nonparametric alternatives
+
+##Testing whether strikes on live vs. dead prey varied with modality 
+kruskal.test(SSTRIKES ~ MODALITY, data = pstrikes20) #p-value = 0.1399
+
+kruskal.test(SSTRIKES_LIVE ~ MODALITY, data = pstrikes20) #p-value = 0.09755
+
+kruskal.test(SSTRIKES_DEAD ~ MODALITY, data = pstrikes20) #p-value = 0.07765
+
+kruskal.test(FSTRIKES ~ MODALITY, data = pstrikes20) # p-value = 0.174
+
+kruskal.test(FSTRIKES_DEAD ~ MODALITY, data = pstrikes20) #p-value = 0.09376
+
+kruskal.test(FSTRIKES_LIVE ~ MODALITY, data = pstrikes20) #p-value = 0.5966
+```
+
+
+```{r}
+##Plots for Figure 11
+
+library(ggplot2)
+library(tidyverse)
+
+strikes_new <- pstrikes20    # Duplicate data
+modality <- factor(strikes_new$MODALITY, c("C", "NL", "NV", "NLV"))
+
+plot13 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_LIVE)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("# of Sucessful Strikes") +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot13 
+
+
+plot14 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_DEAD)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("# of Sucessful Strikes") +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot14 
+
+plot15 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_DEAD)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("# of Failed Strikes") +
+  ylim(0, 11) +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot15 
+
+plot16 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_LIVE)) + geom_boxplot(outlier.shape = 1) +
+     stat_summary(fun.y=mean, colour="black", geom="point", 
+                           shape=20, size=3,show_guide = FALSE)+
+    #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
+  #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
+  xlab("Modality") +
+  ylab("# of Failed Strikes") +
+   ylim(0, 11) +
+  theme_bw() +
+  theme(axis.ticks = element_line(color="black"),
+        axis.ticks.length = unit(1, "mm"),
+        axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
+        axis.text.y = element_text(color="black", size = 11),
+        legend.position="none")
+  
+plot16 
+
+```
+
+
+
+```{r}
+##Mean preference score analysis - were live or dead prey detected earlier within each treatment? 
+wilcox.test(controlstrikes$AVG_DEAD, controlstrikes$AVG_LIVE, paired = T) ## p-value = 0.2249
+
+wilcox.test(chemstrikes$AVG_DEAD, chemstrikes$AVG_LIVE, paired = T) ##p-value = 0.8124
+
+wilcox.test(lcstrikes$AVG_DEAD, lcstrikes$AVG_LIVE, paired = T) ##p-value = 0.9687
+
+wilcox.test(vcstrikes$AVG_DEAD, vcstrikes$AVG_LIVE, paired = T) ##p-value = 0.06204
+
+##Did the mean preference score vary among treatments? 
+kruskal.test(AVG_LIVE~MODALITY, data = pstrikes20)
+
+kruskal.test(AVG_DEAD~MODALITY, data = pstrikes20)
+dunn_test(data = pstrikes20, AVG_DEAD ~ MODALITY, p.adjust.method = "bonferroni")
+```
+
+```{r}
+##Did the platform's time in tank affect the preference for live or dead prey? 
+
+library(lattice)
+library(readxl)
+
+library(tidyverse)
+library(rstatix)
+
+#Loaded Sheet 
+platforms = read_excel("Eb_Platforms.xlsx")
+summary(platforms)
+
+#Subsetting the data 
+platforms20 <- subset(platforms, platforms$YEAR == "2020")
+
+##Was there an overall affect of platform time on preference for live prey 
+kruskal.test(AVG_LIVESCORE ~ ALL_PLATFORMS_TANKTIME, data=platforms20) ##NS, p-value = 0.5586
+
+##Was there an overall affect of platform time on preference for dead prey 
+kruskal.test(AVG_DEADSCORE ~ ALL_PLATFORMS_TANKTIME, data=platforms20) ##NS, p-value = 0.3666
+
+
+##PLATFORM 1
+shapiro.test(platforms20$P1_LIVE)
+
+kruskal.test(P1_LIVE ~ P1_TANKTIME, data = platforms20) ##Not sig, p-value = 0.4042
+
+a14<- aov(data = platforms20, P1_LIVE ~ as.factor(P1_TANKTIME) * as.factor(MODALITY))
+summary(a14) #NS
+
+
+#PLATFORM 2
+shapiro.test(platforms20$P2_LIVE)
+
+kruskal.test(P2_LIVE ~ P2_TANKTIME, data = platforms20) ##p-value = 0.2182
+
+a15<- aov(data = platforms20, P2_LIVE ~ as.factor(P2_TANKTIME) * as.factor(MODALITY))
+summary(a15) #NS
+
+
+##PLATFORM 3
+shapiro.test(platforms20$P3_LIVE)
+
+kruskal.test(P3_LIVE ~ P3_TANKTIME, data = platforms20) ##p-value = 0.5866
+
+a16<- aov(data = platforms20, P3_LIVE ~ as.factor(P3_TANKTIME) * as.factor(MODALITY))
+summary(a16) #Only interaction significant 
+
+ph7 <- glht(a16, linfct = mcp("as.factor(MODALITY)" = "Tukey"))
+summary(ph7) ##NS after correction 
+
+ph8 <- glht(a16, linfct = mcp("as.factor(P3_TANKTIME)" = "Tukey"))
+summary(ph8) ##Only 2T vs. 1T is sig., but 1T vs. 3T isn't
+#Agree w/ AM that since 3T vs. 1T isn't significant this isn't convincing 
+
+
+##PLATFORM 4
+shapiro.test(platforms20$P4_LIVE)
+
+kruskal.test(P4_LIVE ~ P4_TANKTIME, data = platforms20) ##p-value = 0.1464
+
+a17<- aov(data = platforms20, P4_LIVE ~ as.factor(P4_TANKTIME) * as.factor(MODALITY))
+summary(a17) #NS
+
+```
+
