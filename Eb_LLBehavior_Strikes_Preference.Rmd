@@ -47,7 +47,7 @@ kruskal.test(FSTRIKES_LIVE ~ MODALITY, data = pstrikes20) #p-value = 0.5966
 
 
 ```{r}
-##Plots for Figure 11
+##Plots for Figure 9
 
 library(ggplot2)
 library(tidyverse)
