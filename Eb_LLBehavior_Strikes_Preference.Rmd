@@ -55,15 +55,17 @@ library(tidyverse)
 strikes_new <- pstrikes20    # Duplicate data
 modality <- factor(strikes_new$MODALITY, c("C", "NL", "NV", "NLV"))
 
-plot13 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_LIVE)) + geom_boxplot(outlier.shape = 1) +
-     stat_summary(fun.y=mean, colour="black", geom="point", 
+plot13 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_LIVE)) + #geom_boxplot(outlier.shape = 1) +
+geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) +      
+stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
   #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
   xlab("Modality") +
   ylab("# of Sucessful Strikes") +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
@@ -72,15 +74,17 @@ plot13 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_LIVE)) + geom_boxpl
 plot13 
 
 
-plot14 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_DEAD)) + geom_boxplot(outlier.shape = 1) +
-     stat_summary(fun.y=mean, colour="black", geom="point", 
+plot14 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_DEAD)) + #geom_boxplot(outlier.shape = 1) +
+geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) +          
+stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
   #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
   xlab("Modality") +
   ylab("# of Sucessful Strikes") +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
@@ -88,8 +92,9 @@ plot14 <- ggplot(data=pstrikes20, aes(x=modality, y=SSTRIKES_DEAD)) + geom_boxpl
   
 plot14 
 
-plot15 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_DEAD)) + geom_boxplot(outlier.shape = 1) +
-     stat_summary(fun.y=mean, colour="black", geom="point", 
+plot15 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_DEAD)) + #geom_boxplot(outlier.shape = 1) +
+geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) +          
+stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
   #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
@@ -97,7 +102,8 @@ plot15 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_DEAD)) + geom_boxpl
   ylab("# of Failed Strikes") +
   ylim(0, 11) +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
@@ -105,8 +111,9 @@ plot15 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_DEAD)) + geom_boxpl
   
 plot15 
 
-plot16 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_LIVE)) + geom_boxplot(outlier.shape = 1) +
-     stat_summary(fun.y=mean, colour="black", geom="point", 
+plot16 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_LIVE)) + #geom_boxplot(outlier.shape = 1) +
+geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) +       
+stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
   #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
@@ -114,7 +121,8 @@ plot16 <- ggplot(data=pstrikes20, aes(x=modality, y=FSTRIKES_LIVE)) + geom_boxpl
   ylab("# of Failed Strikes") +
    ylim(0, 11) +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
