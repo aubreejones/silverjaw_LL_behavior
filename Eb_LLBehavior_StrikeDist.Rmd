@@ -70,22 +70,24 @@ mean(cdead$STRIKE_DIST) #further
 
 
 ```{r}
-##Plots for Figure 10 
+##Plots for Figure 8
 
 library(ggplot2)
 library(tidyverse)
 
 livedist_new <- livedist    # Duplicate data
 modality <- factor(livedist_new$MODALITY, c("C", "NL", "NV", "NLV"))
-plot11 <- ggplot(data=livedist, aes(x=modality, y=STRIKE_DIST)) + geom_boxplot(outlier.shape = 1) +
-     stat_summary(fun.y=mean, colour="black", geom="point", 
+plot11 <- ggplot(data=livedist, aes(x=modality, y=STRIKE_DIST)) + #geom_boxplot(outlier.shape = 1) +
+geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) +      
+stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
   #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
   xlab("Modality") +
   ylab("Detection Distance (mm)") +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
@@ -95,15 +97,17 @@ plot11
 
 deaddist_new <- deaddist    # Duplicate data
 modality <- factor(deaddist_new$MODALITY, c("C", "NL", "NV", "NLV"))
-plot12 <- ggplot(data=deaddist, aes(x=modality, y=STRIKE_DIST)) + geom_boxplot(outlier.shape = 1) +
-     stat_summary(fun.y=mean, colour="black", geom="point", 
+plot12 <- ggplot(data=deaddist, aes(x=modality, y=STRIKE_DIST)) + #geom_boxplot(outlier.shape = 1) +
+geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) +       
+stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
   #scale_y_continuous(breaks = round(seq(100,2000, by = 500),1))+
   xlab("Modality") +
   ylab("Detection Distance (mm)") +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
