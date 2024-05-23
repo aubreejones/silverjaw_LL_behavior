@@ -68,7 +68,8 @@ library(tidyverse)
 prey_new <- fish20    # Duplicate data
 modality <- factor(prey_new$MODALITY, c("C", "NL", "NV", "NLV"))
 
-plot13 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_DEAD)) + geom_boxplot(outlier.shape = 1) +
+plot13 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_DEAD)) + #geom_boxplot(outlier.shape = 1) +
+     geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) + 
      stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
@@ -76,7 +77,8 @@ plot13 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_DEAD)) + geom_boxplot(outl
   xlab("Modality") +
   ylab("# Dead Prey Consumed") +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
@@ -84,7 +86,8 @@ plot13 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_DEAD)) + geom_boxplot(outl
   
 plot13 
 
-plot14 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_LIVE)) + geom_boxplot(outlier.shape = 1) +
+plot14 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_LIVE)) + #geom_boxplot(outlier.shape = 1) +
+     geom_jitter(color="black", shape=2, size=2, width = 0.2, height = 0) + 
      stat_summary(fun.y=mean, colour="black", geom="point", 
                            shape=20, size=3,show_guide = FALSE)+
     #scale_color_manual(values = c("darkorchid2", "darkturquoise", "darkorchid4", "deepskyblue")) +
@@ -92,7 +95,8 @@ plot14 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_LIVE)) + geom_boxplot(outl
   xlab("Modality") +
   ylab("# Live Prey Consumed") +
   theme_bw() +
-  theme(axis.ticks = element_line(color="black"),
+  theme(panel.grid.minor = element_blank(),
+        axis.ticks = element_line(color="black"),
         axis.ticks.length = unit(1, "mm"),
         axis.text.x = element_text(color="black", size = 11, angle = 0, vjust = 1, hjust = 0.5),
         axis.text.y = element_text(color="black", size = 11),
