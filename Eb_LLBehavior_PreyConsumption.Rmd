@@ -61,7 +61,7 @@ wilcox.test(vcprey$TOTAL_LIVE, vcprey$TOTAL_DEAD, paired = T) # p-value = 0.0262
 
 
 ```{r}
-##Plots for Figure 10 
+##Plots for Figure 8
 ```{r}
 library(ggplot2)
 library(tidyverse)
