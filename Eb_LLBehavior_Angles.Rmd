@@ -13,6 +13,7 @@ library(rstatix)
 #Loaded Sheet 
 angle = read_excel("Eb_Angles.xlsx")
 summary(angle) 
+
 ```
 
 
@@ -233,4 +234,98 @@ c <- ggplot(deadangle, aes(x = DEGREES, fill = as.factor(MODALITY))) +
 c + facet_wrap(~ MODALITY)
 ```
 
+#Re-anlaysis per associate editors request
+#Averaging the measurements from all three light trials and all three dark trials per fish for analysis 
+angle1 = read_excel("Eb_Angles_2.xlsx")
+summary(angle1) 
+
+angle <- angle1 %>% group_by(FISH, MODALITY, LIGHT, TREATMENT, PREY) %>%
+   summarize(avg_angle=mean(RAD),
+             std_angle=sd(RAD))
+
+
+degrees <- angle1 %>% group_by(FISH, MODALITY, LIGHT, TREATMENT, PREY) %>%
+   summarize(avg_deg=mean(DEGREES),
+             std_deg=sd(DEGREES))
+
+
+#Re-testing for normality 
+shapiro.test(liveangle$avg_angle) ##p-value = 0.1315 
+
+shapiro.test(deadangle$avg_angle) ##p-value = 0.1842
+
+#Comaprisons 
+library(circular)
+library(CircStats)
+
+#Testing distribution
+rayleigh.test(cliveangle$avg_angle)
+rayleigh.test(cdeadangle$avg_angle) 
+rayleigh.test(chemliveang$avg_angle) 
+rayleigh.test(chemdeadang$avg_angle) 
+rayleigh.test(vcliveangle$avg_angle)  
+rayleigh.test(vcdeadangle$avg_angle) 
+rayleigh.test(lcliveangle$avg_angle) 
+rayleigh.test(lcdeadangle$avg_angle) 
+
+
+##comparing means of live & dead prey angle distributons 
+watson.wheeler.test(list(cliveangle$avg_angle, chemliveang$avg_angle, vcliveangle$avg_angle, lcliveangle$avg_angle)) #P-value > 0.10 
+watson.two.test(lcliveangle$avg_angle, vcliveangle$avg_angle) #P-value > 0.10 
+watson.two.test(lcliveangle$avg_angle, cliveangle$avg_angle) #P-value > 0.10 
+watson.two.test(lcliveangle$avg_angle, chemliveang$avg_angle) #P-value > 0.10 
+
+watson.two.test(vcliveangle$avg_angle, cliveangle$avg_angle) #P-value > 0.10 
+watson.two.test(vcliveangle$avg_angle, chemliveang$avg_angle) #P-value > 0.05 
+
+watson.two.test(cliveangle$avg_angle, chemliveang$avg_angle) #P-value > 0.10 
+
+watson.wheeler.test(list(cdeadangle$avg_angle, chemdeadang$avg_angle, vcdeadangle$avg_angle, lcdeadangle$avg_angle)) #P-value > 0.10 
+watson.two.test(lcdeadangle$avg_angle, vcdeadangle$avg_angle) #P-value > 0.10 
+watson.two.test(lcdeadangle$avg_angle, cdeadangle$avg_angle) #P-value > 0.10 
+watson.two.test(lcdeadangle$avg_angle, chemdeadang$avg_angle) #P-value > 0.10 
+
+watson.two.test(vcdeadangle$avg_angle, cdeadangle$avg_angle) #P-value > 0.10  
+watson.two.test(vcdeadangle$avg_angle, chemdeadang$avg_angle) #P-value > 0.10 
+
+watson.two.test(cdeadangle$avg_angle, chemdeadang$avg_angle) #P-value > 0.10 
+
+
+#Was there an overall difference in angle of detection for live & dead prey 
+watson.two.test(liveangle$avg_angle, deadangle$avg_angle) ##P-value > 0.10
+
+#Within each treatment 
+watson.two.test(lcliveangle$avg_angle, lcdeadangle$avg_angle) #P-value > 0.10 
+watson.two.test(vcliveangle$avg_angle, vcdeadangle$avg_angle) ##P-value > 0.10 
+watson.two.test(cliveangle$avg_angle, cdeadangle$avg_angle) #P-value > 0.10 
+watson.two.test(chemliveang$avg_angle, chemdeadang$avg_angle)  #P-value > 0.10 
+
+
+
+#Andersondarling k samples test - pooled data for live & dead prey compared among treatments 
+a <- lcangle$avg_angle
+b <- vcangle$avg_angle
+c <- chemangle$avg_angle
+d <- controlangle$avg_angle
+
+library(kSamples)
+ad.test(list(a, b, c, d), method = "exact", dist = F, Nsim = 1000) ##Pvalues = 0.103 for v1 and v2 
+
+#Andersondarling k samples test - live data among treatments 
+a1 <- lcliveangle$avg_angle
+b1 <- vcliveangle$avg_angle
+c1 <- chemliveang$avg_angle
+d1 <- cliveangle$avg_angle
+
+library(kSamples)
+ad.test(list(a1, b1, c1, d1), method = "exact", dist = F, Nsim = 1000) ##p-values v1: 0.074, 0.075
+
+#Andersondarling k samples test - dead data among treatments 
+a2 <- lcdeadangle$avg_angle
+b2 <- vcdeadangle$avg_angle
+c2 <- chemdeadang$avg_angle
+d2 <- cdeadangle$avg_angle
+
+library(kSamples)
+ad.test(list(a2, b2, c2, d2), method = "exact", dist = F, Nsim = 1000) ##p-values v1: 0.199, 0.199
 
