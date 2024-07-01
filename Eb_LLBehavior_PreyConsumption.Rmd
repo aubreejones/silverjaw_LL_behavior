@@ -26,42 +26,109 @@ chemprey <- subset(fish20, fish20$MODALITY == "NLV")
 vcprey <- subset(fish20, fish20$MODALITY == "NL")
 ```
 
+#Averaging the data from all three light trials and all three dark trials per fish - per assoc. editor's request 
+LivepreyAvg <- fish20 %>% group_by(FISH, MODALITY, LIGHT, TREATMENT) %>%
+   summarize(avg_liveprey=mean(TOTAL_LIVE),
+             std_liveprey=sd(TOTAL_LIVE))
+
+DeadpreyAvg <- fish20 %>% group_by(FISH, MODALITY, LIGHT, TREATMENT) %>%
+   summarize(avg_deadprey=mean(TOTAL_DEAD),
+             std_deadprey=sd(TOTAL_DEAD))
+
 ```{r}
 ##Testing for normality 
 shapiro.test(fish20$TOTAL_PREY)
 shapiro.test(fish20$TOTAL_LIVE)
 shapiro.test(fish20$TOTAL_DEAD)
 
-#Did number of prey consumed vary with modality? 
-kruskal.test(data=fish20, TOTAL_PREY~MODALITY)
+##mixed effects models 
+# Fit the mixed-e_ects model for live prey 
+library(lme4)
+library(lmerTest)
+model5 <- lmer(avg_liveprey ~ TREATMENT * LIGHT + (1 | FISH), data = LivepreyAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
 
-kruskal.test(data=fish20, TOTAL_LIVE~MODALITY)
-dunn_test(data = fish20, TOTAL_LIVE ~ MODALITY, p.adjust.method = "bonferroni")
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model5)
 
-kruskal.test(data=fish20, TOTAL_DEAD~MODALITY)
-dunn_test(data = fish20, TOTAL_DEAD ~ MODALITY, p.adjust.method = "bonferroni")
+# Fit the mixed-e_ects model for dead prey 
+library(lme4)
+library(lmerTest)
+model6 <- lmer(avg_deadprey ~ TREATMENT * LIGHT + (1 | FISH), data = DeadpreyAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
 
-#Was the total number of live & dead prey consumed different across all treatments? 
-wilcox.test(fish20$TOTAL_LIVE, fish20$TOTAL_DEAD, paired = T) #Yes 
-mean(fish20$TOTAL_DEAD)
-mean(fish20$TOTAL_LIVE)
-
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model6)
 
 #Is # live prey vs. dead prey different for each modality
 
-wilcox.test(controlprey$TOTAL_LIVE, controlprey$TOTAL_DEAD, paired = T) #.01298
+wilcox.test(controllive$avg_liveprey, controldead$avg_deadprey, paired = T)#p-value = 0.1003
 
-wilcox.test(lcprey$TOTAL_LIVE, lcprey$TOTAL_DEAD, paired = T) #p-value = 0.04472
+wilcox.test(llive$avg_liveprey, lcdead$avg_deadprey, paired = T) #p-value = 0.1814
 
-wilcox.test(chemprey$TOTAL_LIVE, chemprey$TOTAL_DEAD, paired = T) ##p-value = 0.3447 NOT SIG INTERESTING
+wilcox.test(chemlive$avg_liveprey, chemdead$avg_deadprey, paired = T) #p-value = 0.4227
 
-wilcox.test(vcprey$TOTAL_LIVE, vcprey$TOTAL_DEAD, paired = T) # p-value = 0.02627
-```
+wilcox.test(vclive$avg_liveprey, vcdead$avg_deadprey, paired = T) #p-value = 0.1814 
 
 
+#Re-done plots for Figure 8, per editor's request
+p8<- ggplot(LivepreyAvg, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_liveprey, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+scale_y_continuous(limits=c(0,4), breaks=seq(0, 4, 1))+
+  labs(
+#title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "# Prey Consumed",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom" # Move the legend to the bottom
+)
+
+p8
+
+ggsave("LivePreyAvg.tiff", width = 6, height = 4) #This saves it to active directory
+
+
+p9<- ggplot(DeadpreyAvg, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_deadprey, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+scale_y_continuous(limits=c(0,4), breaks=seq(0, 4, 1))+
+  labs(
+#title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "# Prey Consumed",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom" # Move the legend to the bottom
+)
+
+p9
+
+ggsave("DeadPreyAvg.tiff", width = 6, height = 4) #This saves it to active directory
 
 ```{r}
-##Plots for Figure 8
+##Old plots for Figure 8
 ```{r}
 library(ggplot2)
 library(tidyverse)
@@ -104,7 +171,32 @@ plot14 <- ggplot(data=fish20, aes(x=modality, y=TOTAL_LIVE)) + #geom_boxplot(out
   
 plot14 
 ```
+###Previous tests carried out - based on nonparametric analysis, required to not use per editor's request 
+#Did number of prey consumed vary with modality? Previous Analysis
+kruskal.test(data=fish20, TOTAL_PREY~MODALITY)
 
+kruskal.test(data=fish20, TOTAL_LIVE~MODALITY)
+dunn_test(data = fish20, TOTAL_LIVE ~ MODALITY, p.adjust.method = "bonferroni")
+
+kruskal.test(data=fish20, TOTAL_DEAD~MODALITY)
+dunn_test(data = fish20, TOTAL_DEAD ~ MODALITY, p.adjust.method = "bonferroni")
+
+#Was the total number of live & dead prey consumed different across all treatments? 
+wilcox.test(fish20$TOTAL_LIVE, fish20$TOTAL_DEAD, paired = T) #Yes 
+mean(fish20$TOTAL_DEAD)
+mean(fish20$TOTAL_LIVE)
+
+
+#Is # live prey vs. dead prey different for each modality
+
+wilcox.test(controlprey$TOTAL_LIVE, controlprey$TOTAL_DEAD, paired = T) #.01298
+
+wilcox.test(lcprey$TOTAL_LIVE, lcprey$TOTAL_DEAD, paired = T) #p-value = 0.04472
+
+wilcox.test(chemprey$TOTAL_LIVE, chemprey$TOTAL_DEAD, paired = T) ##p-value = 0.3447 NOT SIG INTERESTING
+
+wilcox.test(vcprey$TOTAL_LIVE, vcprey$TOTAL_DEAD, paired = T) # p-value = 0.02627
+```
 
 ```{r}
 #Testing whether a platform's time in the tank affected whether prey was consumed  
