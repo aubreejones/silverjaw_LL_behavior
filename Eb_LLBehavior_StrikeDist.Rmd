@@ -12,6 +12,11 @@ library(readxl)
 dist = read_excel("Eb_Strike_Dist.xlsx")
 summary(dist) 
 
+##Averaging data across all three light trials and all three dark trials per fish, per request of assoc. editor
+DistAvg <- dist20 %>% group_by(FISH, MODALITY, LIGHT, TREATMENT, PREY) %>%
+   summarize(avg_dist=mean(STRIKE_DIST),
+             std_dist=sd(STRIKE_DIST))
+
 livedist <- subset(dist20, dist20$PREY=="live")
 deaddist <- subset(dist20, dist20$PREY=="dead")
 
@@ -40,8 +45,87 @@ dist20 <- subset(dist, dist$YEAR == "2020")
 summary(dist20)
 
 #Testing for Normality 
-shapiro.test(dist20$STRIKE_DIST) ##proceeding with non-parametric test since data is not  normal 
+shapiro.test(dist20$STRIKE_DIST) 
 
+## Fit the mixed-e_ects model for strike distance 
+library(lme4)
+library(lmerTest)
+model2 <- lmer(avg_dist ~ TREATMENT * LIGHT + (1 | FISH), data = DistAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
+
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model2)
+
+
+##Control 
+wilcox.test(cdlive$avg_dist,cddead$avg_dist) #0.6905
+
+#Dark trials, LL intact 
+wilcox.test(lclive$avg_dist,lcdead$avg_dist) #  p-value = 0.6857
+
+#Light trials, LL ablated 
+wilcox.test(vclive$avg_dist,vcdead$avg_dist) #p-value = 0.8571
+
+#Dark trials, LL ablated 
+wilcox.test(clive$avg_dist,cdead$avg_dist) #p-value = 0.1
+```
+#Plots for Figure 8 
+livedist <- subset(DistAvg, DistAvg$PREY=="live")
+deaddist <- subset(DistAvg, DistAvg$PREY=="dead")
+
+#Live Prey 
+p7<- ggplot(livedist, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_dist, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+scale_y_continuous(limits=c(0,90), breaks=seq(0, 90, 10))+
+  labs(
+#title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Strike Distance (mm)",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom" # Move the legend to the bottom
+)
+
+p7 
+
+ggsave("LiveDistAvg.tiff", width = 6, height = 4) #This saves it to active directory
+
+#Dead prey 
+p8<- ggplot(deaddist, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_dist, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+scale_y_continuous(limits=c(0,90), breaks=seq(0, 90, 10))+
+  labs(
+#title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Strike Distance (mm)",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom" # Move the legend to the bottom
+)
+
+p8
+
+ggsave("DeadDistAvg.tiff", width = 6, height = 4) #This saves it to active directory
+
+########
+#Old Analysis based on non-parametric data, did not use as required by editor 
 #Did detection distance vary with modality? 
 kruskal.test(STRIKE_DIST~MODALITY, data = dist20)
 
@@ -65,12 +149,11 @@ wilcox.test(vclive$STRIKE_DIST,vcdead$STRIKE_DIST) #p-value = 0.1783
 #Dark trials, LL ablated 
 wilcox.test(clive$STRIKE_DIST,cdead$STRIKE_DIST) #p-value = 0.004984
 mean(clive$STRIKE_DIST) #closer 
-mean(cdead$STRIKE_DIST) #further 
-```
+mean(cdead$STRIKE_DIST) #further
 
 
 ```{r}
-##Plots for Figure 8
+##Old plots for Figure 8
 
 library(ggplot2)
 library(tidyverse)
