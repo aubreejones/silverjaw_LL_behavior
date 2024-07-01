@@ -28,9 +28,316 @@ vcstrikes<- subset(pstrikes20, pstrikes20$MODALITY=="NL")
 
 ```{r}
 #Normality Testing 
-shapiro.test(pstrikes20$SSTRIKES) #not normal, proceeding with nonparametric alternatives
-shapiro.test(pstrikes20$FSTRIKES)#not normal, proceeding with nonparametric alternatives
+shapiro.test(pstrikes20$SSTRIKES) #not normal
+shapiro.test(pstrikes20$FSTRIKES)#not normal
 
+# Fit the mixed-e_ects model for successful strikes 
+library(lme4)
+model <- lmer(avg_SSTRIKES ~ TREATMENT * LIGHT + (1 | FISH), data = SStrikesAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
+
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model)
+
+# Fit the mixed-e_ects model for failed strikes 
+library(lme4)
+model1 <- lmer(avg_FSTRIKES ~ TREATMENT * LIGHT + (1 | FISH), data = FStrikesAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
+
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model1)
+
+#Plots for Figure 8
+livesstrikes <- pstrikes20 %>% group_by(FISH, LIGHT, TREATMENT) %>%
+   summarize(avg_livestrikes=mean(SSTRIKES_LIVE))
+
+#write.csv(FStrikesAvg, file = "StrikesAvg.csv") #Add your own path like to your desktop or somewhere, end it with the file name you want and the extension .csv
+
+p1<- ggplot(livesstrikes, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_livestrikes, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+labs(
+#title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Number of Strikes",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom" # Move the legend to the bottom
+)
+
+p1 
+
+ggsave("LiveSStrikes.tiff", width = 6, height = 4) #This saves it to active directory
+
+
+deadsstrikes <- pstrikes20 %>% group_by(FISH, LIGHT, TREATMENT) %>%
+   summarize(avg_deadsstrikes=mean(SSTRIKES_DEAD))
+
+#write.csv(FStrikesAvg, file = "StrikesAvg.csv") #Add your own path like to your desktop or somewhere, end it with the file name you want and the extension .csv
+
+p4<- ggplot(deadsstrikes, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_deadsstrikes, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+scale_y_continuous(limits=c(0,4), breaks=seq(0, 4, 1))+
+  labs(
+#title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Number of Strikes",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom" # Move the legend to the bottom
+)
+
+p4
+
+ggsave("DeadSStrikes.tiff", width = 6, height = 4) #This saves it to active directory
+
+
+livefstrikes <- pstrikes20 %>% group_by(FISH, LIGHT, TREATMENT) %>%
+   summarize(avg_livefstrikes=mean(FSTRIKES_LIVE))
+
+#write.csv(FStrikesAvg, file = "StrikesAvg.csv") #Add your own path like to your desktop or somewhere, end it with the file name you want and the extension .csv
+
+p2<- ggplot(livefstrikes, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_livefstrikes, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+#ylim(c(0,7))+
+  scale_y_continuous(limits=c(0,7), breaks=seq(0, 7, 1))+
+  labs(
+    #title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Number of Strikes",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom", # Move the legend to the bottom
+axis.ticks.length = unit(1, "mm"),
+)
+
+p2 
+
+ggsave("LiveFStrikes.tiff", width = 6, height = 4) #This saves it to active directory
+
+
+deadfstrikes <- pstrikes20 %>% group_by(FISH, LIGHT, TREATMENT) %>%
+   summarize(avg_deadfstrikes=mean(FSTRIKES_DEAD))
+
+#write.csv(FStrikesAvg, file = "StrikesAvg.csv") #Add your own path like to your desktop or somewhere, end it with the file name you want and the extension .csv
+
+p3<- ggplot(deadfstrikes, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_deadfstrikes, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+#ylim(c(0,10))+
+  scale_y_continuous(limits = c(0, 7), breaks = round(seq(0,7, 1),1))+
+  #expand_limits(y = 6)+
+  labs(
+    #title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Number of Strikes",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom", # Move the legend to the bottom
+axis.ticks.length = unit(1, "mm"),
+)
+
+p3
+
+ggsave("DeadFStrikes.tiff", width = 6, height = 4) #This saves it to active directory
+```
+
+
+
+```{r}
+##Mean preference score analysis - were live or dead prey detected earlier within each treatment? 
+#Averaging the scores from all three light trials and all three dark trials, per request of editor 
+##LiveprefAvg <- strikes20 %>% group_by(FISH, LIGHT, TREATMENT) %>%
+   summarize(avg_livepref=mean(AVG_LIVE),
+             std_livepref=sd(AVG_LIVE))
+
+DeadprefAvg <- strikes20 %>% group_by(FISH, LIGHT, TREATMENT) %>%
+   summarize(avg_deadpref=mean(AVG_DEAD),
+             std_deadpref=sd(AVG_DEAD))
+
+##Plots used in Figure 8
+#Dead Prey 
+p5<- ggplot(DeadprefAvg, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_deadpref, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+#ylim(c(0,7))+
+  scale_y_continuous(limits=c(0,8), breaks=seq(0, 8, 1))+
+  labs(
+    #title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Preference Score",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom", # Move the legend to the bottom
+axis.ticks.length = unit(1, "mm"),
+)
+
+p5
+
+ggsave("DeadPrefAvg.tiff", width = 6, height = 4) #This saves it to active directory
+
+#Live prey 
+p6<- ggplot(LiveprefAvg, aes(x = factor(LIGHT, level = c('light', 'dark')), y = avg_livepref, shape = TREATMENT)) +
+geom_point(position = position_dodge(width = 0.5), size = 3) + # Add dodge to separate
+#scale_fill_manual(values = c("gray", "gray44"))+
+  #ablation groups and increase point size
+#ylim(c(0,7))+
+  scale_y_continuous(limits=c(0,8), breaks=seq(0, 8, 1))+
+  labs(
+    #title = "Sucessful Strikes by Light Condition and Ablation Status",
+x = "Light Condition",
+y = "Preference Score",
+#color = "Ablation Status",
+shape = "Ablation Status"
+) +
+theme_bw() + # Use a minimal theme
+theme(
+panel.grid.minor = element_blank(),
+  legend.position = "bottom", # Move the legend to the bottom
+axis.ticks.length = unit(1, "mm"),
+)
+
+p6
+
+ggsave("LivePrefAvg.tiff", width = 6, height = 4) #This saves it to active directory
+
+##
+# Fit the mixed-effects model for live prey preference scores 
+library(lme4)
+library(lmerTest)
+model3 <- lmer(avg_livepref ~ TREATMENT * LIGHT + (1 | FISH), data = LiveprefAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
+
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model3)
+
+#Model for dead prey preference scores 
+library(lme4)
+library(lmerTest)
+model4 <- lmer(avg_deadpref ~ TREATMENT * LIGHT + (1 | FISH), data = DeadprefAvg)
+# Check for singular fit
+if (isSingular(model, tol = 1e-4)) {
+print("The model is singular.")
+
+} else {
+print("The model is not singular.")
+}
+# Display the summary of the model
+summary(model4)
+
+
+
+```
+
+```{r}
+##Did the platform's time in tank affect the preference for live or dead prey? 
+
+library(lattice)
+library(readxl)
+
+library(tidyverse)
+library(rstatix)
+
+#Loaded Sheet 
+platforms = read_excel("Eb_Platforms.xlsx")
+summary(platforms)
+
+#Subsetting the data 
+platforms20 <- subset(platforms, platforms$YEAR == "2020")
+
+##Was there an overall affect of platform time on preference for live prey 
+kruskal.test(AVG_LIVESCORE ~ ALL_PLATFORMS_TANKTIME, data=platforms20) ##NS, p-value = 0.5586
+
+##Was there an overall affect of platform time on preference for dead prey 
+kruskal.test(AVG_DEADSCORE ~ ALL_PLATFORMS_TANKTIME, data=platforms20) ##NS, p-value = 0.3666
+
+
+##PLATFORM 1
+shapiro.test(platforms20$P1_LIVE)
+
+kruskal.test(P1_LIVE ~ P1_TANKTIME, data = platforms20) ##Not sig, p-value = 0.4042
+
+a14<- aov(data = platforms20, P1_LIVE ~ as.factor(P1_TANKTIME) * as.factor(MODALITY))
+summary(a14) #NS
+
+
+#PLATFORM 2
+shapiro.test(platforms20$P2_LIVE)
+
+kruskal.test(P2_LIVE ~ P2_TANKTIME, data = platforms20) ##p-value = 0.2182
+
+a15<- aov(data = platforms20, P2_LIVE ~ as.factor(P2_TANKTIME) * as.factor(MODALITY))
+summary(a15) #NS
+
+
+##PLATFORM 3
+shapiro.test(platforms20$P3_LIVE)
+
+kruskal.test(P3_LIVE ~ P3_TANKTIME, data = platforms20) ##p-value = 0.5866
+
+a16<- aov(data = platforms20, P3_LIVE ~ as.factor(P3_TANKTIME) * as.factor(MODALITY))
+summary(a16) #Only interaction significant 
+
+ph7 <- glht(a16, linfct = mcp("as.factor(MODALITY)" = "Tukey"))
+summary(ph7) ##NS after correction 
+
+ph8 <- glht(a16, linfct = mcp("as.factor(P3_TANKTIME)" = "Tukey"))
+summary(ph8) ##Only 2T vs. 1T is sig., but 1T vs. 3T isn't
+#Agree w/ AM that since 3T vs. 1T isn't significant this isn't convincing 
+
+
+##PLATFORM 4
+shapiro.test(platforms20$P4_LIVE)
+
+kruskal.test(P4_LIVE ~ P4_TANKTIME, data = platforms20) ##p-value = 0.1464
+
+a17<- aov(data = platforms20, P4_LIVE ~ as.factor(P4_TANKTIME) * as.factor(MODALITY))
+summary(a17) #NS
+
+```
+##Old strike analysis based on nonparametric data, editor required it not be used 
 ##Testing whether strikes on live vs. dead prey varied with modality 
 kruskal.test(SSTRIKES ~ MODALITY, data = pstrikes20) #p-value = 0.1399
 
@@ -45,7 +352,7 @@ kruskal.test(FSTRIKES_DEAD ~ MODALITY, data = pstrikes20) #p-value = 0.09376
 kruskal.test(FSTRIKES_LIVE ~ MODALITY, data = pstrikes20) #p-value = 0.5966
 ```
 
-
+##Old plots for Fig. 9
 ```{r}
 ##Plots for Figure 9
 
@@ -130,12 +437,8 @@ stat_summary(fun.y=mean, colour="black", geom="point",
   
 plot16 
 
-```
 
-
-
-```{r}
-##Mean preference score analysis - were live or dead prey detected earlier within each treatment? 
+#Previous analysis of preference scores based on nonparametric data, editor required it to not be used 
 wilcox.test(controlstrikes$AVG_DEAD, controlstrikes$AVG_LIVE, paired = T) ## p-value = 0.2249
 
 wilcox.test(chemstrikes$AVG_DEAD, chemstrikes$AVG_LIVE, paired = T) ##p-value = 0.8124
@@ -149,72 +452,3 @@ kruskal.test(AVG_LIVE~MODALITY, data = pstrikes20)
 
 kruskal.test(AVG_DEAD~MODALITY, data = pstrikes20)
 dunn_test(data = pstrikes20, AVG_DEAD ~ MODALITY, p.adjust.method = "bonferroni")
-```
-
-```{r}
-##Did the platform's time in tank affect the preference for live or dead prey? 
-
-library(lattice)
-library(readxl)
-
-library(tidyverse)
-library(rstatix)
-
-#Loaded Sheet 
-platforms = read_excel("Eb_Platforms.xlsx")
-summary(platforms)
-
-#Subsetting the data 
-platforms20 <- subset(platforms, platforms$YEAR == "2020")
-
-##Was there an overall affect of platform time on preference for live prey 
-kruskal.test(AVG_LIVESCORE ~ ALL_PLATFORMS_TANKTIME, data=platforms20) ##NS, p-value = 0.5586
-
-##Was there an overall affect of platform time on preference for dead prey 
-kruskal.test(AVG_DEADSCORE ~ ALL_PLATFORMS_TANKTIME, data=platforms20) ##NS, p-value = 0.3666
-
-
-##PLATFORM 1
-shapiro.test(platforms20$P1_LIVE)
-
-kruskal.test(P1_LIVE ~ P1_TANKTIME, data = platforms20) ##Not sig, p-value = 0.4042
-
-a14<- aov(data = platforms20, P1_LIVE ~ as.factor(P1_TANKTIME) * as.factor(MODALITY))
-summary(a14) #NS
-
-
-#PLATFORM 2
-shapiro.test(platforms20$P2_LIVE)
-
-kruskal.test(P2_LIVE ~ P2_TANKTIME, data = platforms20) ##p-value = 0.2182
-
-a15<- aov(data = platforms20, P2_LIVE ~ as.factor(P2_TANKTIME) * as.factor(MODALITY))
-summary(a15) #NS
-
-
-##PLATFORM 3
-shapiro.test(platforms20$P3_LIVE)
-
-kruskal.test(P3_LIVE ~ P3_TANKTIME, data = platforms20) ##p-value = 0.5866
-
-a16<- aov(data = platforms20, P3_LIVE ~ as.factor(P3_TANKTIME) * as.factor(MODALITY))
-summary(a16) #Only interaction significant 
-
-ph7 <- glht(a16, linfct = mcp("as.factor(MODALITY)" = "Tukey"))
-summary(ph7) ##NS after correction 
-
-ph8 <- glht(a16, linfct = mcp("as.factor(P3_TANKTIME)" = "Tukey"))
-summary(ph8) ##Only 2T vs. 1T is sig., but 1T vs. 3T isn't
-#Agree w/ AM that since 3T vs. 1T isn't significant this isn't convincing 
-
-
-##PLATFORM 4
-shapiro.test(platforms20$P4_LIVE)
-
-kruskal.test(P4_LIVE ~ P4_TANKTIME, data = platforms20) ##p-value = 0.1464
-
-a17<- aov(data = platforms20, P4_LIVE ~ as.factor(P4_TANKTIME) * as.factor(MODALITY))
-summary(a17) #NS
-
-```
-
